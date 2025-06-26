@@ -48,7 +48,7 @@ const Services = () => {
     ];
 
     return (
-        <section className="bg-[#073b4c] text-white py-14 px-4 rounded-[30px]">
+        <section className="bg-[#073b4c] text-white py-[100px] px-[110px] rounded-[30px] mb-[100px]">
         <div className="text-center mb-12">
             <h2 className="text-3xl font-semibold mb-2">Our Services</h2>
             <p className="text-sm text-gray-200 max-w-xl mx-auto">
@@ -68,7 +68,7 @@ const Services = () => {
                 }`}
             >
                 <div className="flex justify-center mb-4"><span className='p-5 rounded-full bg-linear-to-b from-neutral-200 to-base-200 font-extrabold'>{item.icon}</span></div>
-                <h3 className="bold text-2xl">{item.title}</h3>
+                <h3 className="bold text-2xl text-[#03373D]">{item.title}</h3>
                 <p className="text-base mt-2">{item.description}</p>
             </div>
             ))}

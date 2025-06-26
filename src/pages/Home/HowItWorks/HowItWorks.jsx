@@ -34,7 +34,7 @@ const HowItWorks = () => {
           {howItWorksData.map((item, index) => (
             <div key={index} className="bg-white p-8 rounded-xl shadow-sm text-center">
               <div className="mb-4 flex justify-center">{item.icon}</div>
-              <h3 className="text-lg font-semibold text-[#0f2c3f]">{item.title}</h3>
+              <h3 className="text-xl font-bold text-[#03373D]">{item.title}</h3>
               <p className="text-gray-600 text-sm mt-2">{item.description}</p>
             </div>
           ))}
