@@ -1,5 +1,6 @@
 import React from 'react';
 import QuickShiftLogo from '../QuickShiftLogo/QuickShiftLogo';
+import { Link } from 'react-router';
 
 const Footer = () => {
     return (
@@ -10,6 +11,16 @@ const Footer = () => {
                     Enjoy fast, reliable parcel delivery with real-time tracking and zero hassle. From personal packages to <br /> business shipments — we deliver on time, every time.
                 </p>
             </aside>
+            <div className="">
+                <ul className='flex gap-3 text-base'>
+                    <li><Link>Services</Link></li>
+                    <li><Link>Coverage</Link></li>
+                    <li><Link>About Us</Link></li>
+                    <li><Link>Pricing</Link></li>
+                    <li><Link>Blog</Link></li>
+                    <li><Link>Contact</Link></li>
+                </ul>
+            </div>
             <nav>
                 <div className="grid grid-flow-col gap-4">
                 <a>
