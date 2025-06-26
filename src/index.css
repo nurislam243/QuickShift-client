@@ -1,5 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 @plugin "daisyui";
+
+.font-urbanist {
+  font-family: "Urbanist", sans-serif;
+}
+
 
 @plugin "daisyui/theme" {
   name: "QuickShift";
@@ -9,7 +15,7 @@
 
   --color-base-100: #FFFFFF;
   --color-base-200: #F9F9FA;
-  --color-base-300: #EAECED;
+  --color-base-300: "#EAECED";
   --color-base-content: oklch(20% 0.05 240);
   --color-primary: #CAEB66;
   --color-primary-content: oklch(98% 0.01 240);

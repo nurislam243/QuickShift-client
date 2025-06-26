@@ -5,10 +5,14 @@ import Footer from '../pages/shared/Footer/Footer';
 
 const RootLayout = () => {
     return (
-        <div>
-            <Navbar></Navbar>
-            <Outlet></Outlet>
-            <Footer></Footer>
+        <div className="bg-base-300 pt-[32px] pb-[50px]">
+            <div className='max-w-[1536px] mx-auto'>
+                <Navbar></Navbar>
+                <div className="pt-8">
+                    <Outlet></Outlet>
+                </div>
+                <Footer></Footer>
+            </div>
         </div>
     );
 };
