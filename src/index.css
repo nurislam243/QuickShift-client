@@ -6,6 +6,12 @@
   font-family: "Urbanist", sans-serif;
 }
 
+ /* inside global css */
+.input-style {
+  @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500;
+}
+
+
 
 @plugin "daisyui/theme" {
   name: "QuickShift";
