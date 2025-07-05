@@ -1,12 +1,27 @@
 import React from 'react';
-import { NavLink } from 'react-router';
+import { Link, NavLink } from 'react-router';
 import QuickShiftLogo from '../QuickShiftLogo/QuickShiftLogo';
+import useAuth from '../../../hooks/useAuth';
 
 const Navbar = () => {
+    const { logOut, user } = useAuth();
+
     const navItems = <>
         <li><NavLink to={"/"}>Home</NavLink></li>
-        <li><NavLink to={"about"}>About Us</NavLink></li>
+        <li><NavLink to={"/coverage"}>Coverage</NavLink></li>
+        <li><NavLink to={"/about"}>About Us</NavLink></li>
     </>
+
+    const handleLogout = () =>{
+        logOut()
+        .then(data =>{
+            alert('logout successful');
+        })
+        .catch(err =>{
+            console.error(err);
+            
+        })
+    }
 
     return (
         <div className="navbar bg-base-100 shadow-sm h-[96px] rounded-2xl">
@@ -29,7 +44,9 @@ const Navbar = () => {
             </ul>
         </div>
         <div className="navbar-end">
-            <a className="btn">Button</a>
+            {
+                user ? <button onClick={handleLogout} className='btn btn-primary text-black'>Logout</button> : <Link to={'/login'} className='btn btn-primary text-black'>Login</Link>
+            }
         </div>
         </div>
     );
