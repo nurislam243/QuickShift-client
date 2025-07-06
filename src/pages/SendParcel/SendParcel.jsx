@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useLoaderData } from "react-router";
 import Swal from "sweetalert2";
+import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
 const AddParcelForm = () => {
   const {
@@ -9,10 +11,11 @@ const AddParcelForm = () => {
     handleSubmit,
     watch,
     resetField,
-    setValue,
     formState: { errors },
   } = useForm();
   const coverageData = useLoaderData();
+  const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
 
   const [regions, setRegions] = useState([]);
   const [senderCenters, setSenderCenters] = useState([]);
@@ -23,7 +26,7 @@ const AddParcelForm = () => {
   useEffect(() => {
     const uniqueRegions = [...new Set(coverageData.map((item) => item.region))];
     setRegions(uniqueRegions);
-  }, []);
+  }, [coverageData]);
 
   const handleRegionChange = (region, isSender = true) => {
     const filteredAreas = coverageData
@@ -41,7 +44,6 @@ const AddParcelForm = () => {
 
   const calculatePrice = (type, isSameDistrict, weight) => {
     let price = 0;
-
     if (type === "document") {
       price = isSameDistrict ? 60 : 80;
     } else {
@@ -52,13 +54,50 @@ const AddParcelForm = () => {
         price = isSameDistrict ? 110 + extra : 150 + extra + 40;
       }
     }
-
     return price;
+  };
+
+  const generateTrackingId = () => {
+    return `PX-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now()}`;
+  };
+
+  const getEstimatedDeliveryDate = () => {
+    const now = new Date();
+    now.setDate(now.getDate() + 2); // delivery within 2 days
+    return now.toISOString();
   };
 
   const onSubmit = (data) => {
     const isSameDistrict = data.senderRegion === data.receiverRegion;
     const total = calculatePrice(data.type, isSameDistrict, parseFloat(data.weight || 0));
+
+    const finalParcel = {
+      ...data,
+      sender: {
+        name: data.senderName,
+        region: data.senderRegion,
+        center: data.senderCenter,
+        address: data.senderAddress,
+        contact: data.senderContact,
+        pickupNote: data.pickupNote,
+      },
+      receiver: {
+        name: data.receiverName,
+        region: data.receiverRegion,
+        center: data.receiverCenter,
+        address: data.receiverAddress,
+        contact: data.receiverContact,
+        deliveryNote: data.deliveryNote,
+      },
+      address: data.senderAddress,
+      price: total,
+      createdAt: new Date().toISOString(),
+      createdBy: user?.email || "anonymous",
+      trackingId: generateTrackingId(),
+      estimatedDeliveryDate: getEstimatedDeliveryDate(),
+      payment_status: "unpaid",
+      delivery_status: "not-collected",
+    };
 
     Swal.fire({
       title: "Confirm Your Parcel",
@@ -75,13 +114,17 @@ const AddParcelForm = () => {
       cancelButtonText: "❌ Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
-        const finalParcel = {
-          ...data,
-          price: total,
-          creation_date: new Date().toISOString(),
-        };
         console.log("Final Parcel Data:", finalParcel);
-        Swal.fire("Submitted!", "Your parcel has been booked.", "success");
+        axiosSecure
+          .post("/parcels", finalParcel)
+          .then((res) => {
+            Swal.fire("Submitted!", "Your parcel has been booked.", "success");
+            console.log(res.data);
+          })
+          .catch((err) => {
+            console.error("Error submitting parcel:", err.response?.data || err.message);
+            Swal.fire("Error", "Failed to submit parcel.", "error");
+          });
       }
     });
   };
@@ -92,7 +135,7 @@ const AddParcelForm = () => {
         <h1 className="text-4xl font-bold text-gray-800 mb-4">Add Parcel</h1>
         <hr className="mb-6" />
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Radio and Parcel Info */}
+          {/* Parcel Type & Info */}
           <div className="mb-7 border-b pb-7 border-gray-400">
             <div className="space-x-8 mb-8">
               <label>
@@ -137,10 +180,12 @@ const AddParcelForm = () => {
                   })}
                   placeholder="Weight (KG)"
                   className="input input-bordered w-full"
-                  disabled={parcelType === "document"} 
+                  disabled={parcelType === "document"}
                 />
                 {errors.weight && (
-                  <p className="text-red-500 text-sm mt-1">Weight is required for non-document</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    Weight is required for non-document
+                  </p>
                 )}
               </div>
             </div>
@@ -156,7 +201,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.senderName && (
-                  <p className="text-red-500 text-sm mt-1">Sender name is required</p>
+                  <p className="text-red-500 text-sm">Sender name is required</p>
                 )}
               </div>
               <div>
@@ -167,11 +212,13 @@ const AddParcelForm = () => {
                 >
                   <option value="">Select Region</option>
                   {regions.map((region) => (
-                    <option key={region} value={region}>{region}</option>
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
                   ))}
                 </select>
                 {errors.senderRegion && (
-                  <p className="text-red-500 text-sm mt-1">Sender region is required</p>
+                  <p className="text-red-500 text-sm">Sender region is required</p>
                 )}
               </div>
               <div>
@@ -181,11 +228,13 @@ const AddParcelForm = () => {
                 >
                   <option value="">Select Warehouse</option>
                   {senderCenters.map((center, index) => (
-                    <option key={index} value={center}>{center}</option>
+                    <option key={index} value={center}>
+                      {center}
+                    </option>
                   ))}
                 </select>
                 {errors.senderCenter && (
-                  <p className="text-red-500 text-sm mt-1">Sender center is required</p>
+                  <p className="text-red-500 text-sm">Sender center is required</p>
                 )}
               </div>
               <div>
@@ -195,7 +244,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.senderAddress && (
-                  <p className="text-red-500 text-sm mt-1">Sender address is required</p>
+                  <p className="text-red-500 text-sm">Sender address is required</p>
                 )}
               </div>
               <div>
@@ -206,7 +255,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.senderContact && (
-                  <p className="text-red-500 text-sm mt-1">Sender contact is required</p>
+                  <p className="text-red-500 text-sm">Sender contact is required</p>
                 )}
               </div>
               <div>
@@ -216,7 +265,7 @@ const AddParcelForm = () => {
                   className="textarea textarea-bordered w-full"
                 />
                 {errors.pickupNote && (
-                  <p className="text-red-500 text-sm mt-1">Pickup instruction is required</p>
+                  <p className="text-red-500 text-sm">Pickup instruction is required</p>
                 )}
               </div>
             </div>
@@ -230,7 +279,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.receiverName && (
-                  <p className="text-red-500 text-sm mt-1">Receiver name is required</p>
+                  <p className="text-red-500 text-sm">Receiver name is required</p>
                 )}
               </div>
               <div>
@@ -241,11 +290,13 @@ const AddParcelForm = () => {
                 >
                   <option value="">Select Region</option>
                   {regions.map((region) => (
-                    <option key={region} value={region}>{region}</option>
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
                   ))}
                 </select>
                 {errors.receiverRegion && (
-                  <p className="text-red-500 text-sm mt-1">Receiver region is required</p>
+                  <p className="text-red-500 text-sm">Receiver region is required</p>
                 )}
               </div>
               <div>
@@ -255,11 +306,13 @@ const AddParcelForm = () => {
                 >
                   <option value="">Select Warehouse</option>
                   {receiverCenters.map((center, index) => (
-                    <option key={index} value={center}>{center}</option>
+                    <option key={index} value={center}>
+                      {center}
+                    </option>
                   ))}
                 </select>
                 {errors.receiverCenter && (
-                  <p className="text-red-500 text-sm mt-1">Receiver center is required</p>
+                  <p className="text-red-500 text-sm">Receiver center is required</p>
                 )}
               </div>
               <div>
@@ -269,7 +322,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.receiverAddress && (
-                  <p className="text-red-500 text-sm mt-1">Receiver address is required</p>
+                  <p className="text-red-500 text-sm">Receiver address is required</p>
                 )}
               </div>
               <div>
@@ -280,7 +333,7 @@ const AddParcelForm = () => {
                   className="input input-bordered w-full"
                 />
                 {errors.receiverContact && (
-                  <p className="text-red-500 text-sm mt-1">Receiver contact is required</p>
+                  <p className="text-red-500 text-sm">Receiver contact is required</p>
                 )}
               </div>
               <div>
@@ -290,7 +343,7 @@ const AddParcelForm = () => {
                   className="textarea textarea-bordered w-full"
                 />
                 {errors.deliveryNote && (
-                  <p className="text-red-500 text-sm mt-1">Delivery instruction is required</p>
+                  <p className="text-red-500 text-sm">Delivery instruction is required</p>
                 )}
               </div>
             </div>
