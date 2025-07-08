@@ -4,12 +4,14 @@ import useAuth from '../../../hooks/useAuth';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { format } from "date-fns";
 import Swal from "sweetalert2";
+import { useNavigate } from 'react-router';
 
 
 const MyParcels = () => {
     const {user} = useAuth();
     const axiosSecure = useAxiosSecure();
     const [selectedParcel, setSelectedParcel] = useState(null);
+    const navigate = useNavigate();
 
     const {data: parcels=[], refetch} = useQuery({
         queryKey: ['my-parcels', user.email],
@@ -48,9 +50,10 @@ const MyParcels = () => {
     };
 
 
-  const handlePay = (parcel) => {
+  const handlePay = (id) => {
     // For now just show console. Replace with payment flow later.
-    console.log("Paying for parcel:", parcel);
+    console.log("Paying for parcel:", id);
+    navigate(`/dashboard/payment/${id}`)
     Swal.fire("Redirecting to payment!", "", "info");
   };
 
@@ -98,7 +101,7 @@ const MyParcels = () => {
                 {parcel.payment_status !== "paid" && (
                   <button
                     className="btn btn-sm btn-success"
-                    onClick={() => handlePay(parcel)}
+                    onClick={() => handlePay(parcel._id)}
                   >
                     Pay
                   </button>
